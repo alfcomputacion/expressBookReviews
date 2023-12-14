@@ -54,18 +54,19 @@ regd_users.post("/login", (req,res) => {
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-  //Write your code here
+  //Write your code here 
+
     let isbn = req.params.isbn
     let review = req.query.review
     let username = req.session.authorization.username;
     let reviewName = books[isbn]["reviews"]["name"]
     let obj = books[isbn]["reviews"]
-
+    let tipo = typeof(obj)
     if(books[isbn]["reviews"][username]){
-      books[isbn]["reviews"]={[username]:review}
-      return res.status(300).json({message: "Review same user saved " + JSON.stringify(books[isbn])});
-  }else{
-      // books[isbn]["reviews"]={[username]:review}
+             books[isbn]["reviews"]={...obj,[username]:review}
+      return res.status(300).json({message: "Review same user saved ***"+ tipo +"**** " + JSON.stringify(books[isbn])});
+    }else{
+      // If the username is different or no reviews in the books
       Object.defineProperty(books[isbn]["reviews"], [username], {
           value: review,
           writable: false,
@@ -74,23 +75,23 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
         });
 
       return res.status(300).json({message: "Different user Review saved " + JSON.stringify(books[isbn])});
-  }
-  // if (!Object.keys(obj).length > 0){
-  // }else{
-  //     return true
-  // }
-  // if(reviewName){
-  //     if(books[isbn]["reviews"]["name"] === username){
-  //         books[isbn]["reviews"]={...books[isbn]["reviews"],"name": username, "review": review}
-  //     }else{
-  //         books[isbn]["reviews"]={...books[isbn]["reviews"],"name": username, "review": review}
-  //     }
-  // }else{
-  // }
-//   let review = req.body.review
-//   let isbn = req.params.isbn
-  // let review = Object.values(books)[isbn]
+    }
+  
 });
+
+regd_users.delete("/auth/review/:isbn", (req, res)=>{
+    let isbn = req.params.isbn;
+    let username = req.session.authorization.username;
+    let obj = books[isbn]["reviews"][username]
+
+    if(obj.length > 0){
+        delete books[isbn]["reviews"][username]
+            return res.status(200).json({message:  JSON.stringify(obj) +" , was deleted succesfully. "+ JSON.stringify(books[isbn])})
+
+    }else{
+        return res.status(404).json({message: "The review was not found!"} + JSON.stringify(obj))
+    }
+})
 
 module.exports.authenticated = regd_users;
 module.exports.isValid = isValid;
